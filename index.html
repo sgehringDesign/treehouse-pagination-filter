@@ -11,8 +11,7 @@
     <div class="page">
       <div class="page-header cf">
         <h2>Students</h2>
-        <-- dynamically insert search form here (optional) -->
-
+        <!-- dynamically insert search form here (optional) -->
       </div>
       <ul class="student-list">
         <li class="student-item cf">
@@ -556,8 +555,108 @@
            </div>
         </li>
       </ul>
-      <-- dynamically add pagination links here -->
+      <!-- dynamically add pagination links here -->
 
+
+      <script>
+
+        //DOM READY W/ OUT JQUERY work
+        document.addEventListener("DOMContentLoaded", function(event) { 
+          function setInnerHTML(element, content) {
+            element.innerHTML = content;
+            return element;
+          } 
+          var studentsGenerator = function () {
+
+            // SET PROPERTIES (PRIVATE) __________________________________
+            var Students = {};
+
+            Students.selectors = {
+              studentList:  '.student-list',
+              studentItems: '.student-item',
+            }
+
+            // DEFINE RANGE (PUBLIC) _____________________________________
+            Students.range = {
+              display: 10,
+              segments: 0,
+              current: {
+                segment: 0,
+                begin: 0,
+                end: 10,
+              }
+            }; 
+
+            // DEFINE LENGTH (PUBLIC) ____________________________________
+            Students.length = 0;
+
+            // DEFINE SUDENT COLLECTION (PUBLIC) _________________________
+            Students.data = [];
+            Students.listNode = [];
+
+            // LOAD STUDENTS METHOD (PUBLIC) _________________________
+            var loadStudents = function (quote) {
+              Students.data = [].slice.call(document.querySelectorAll(Students.selectors.studentItems));
+              Students.length = Students.data.length;
+              Students.range.segments = Math.ceil(Students.length / Students.range.display);
+              Students.listNode = document.querySelectorAll(Students.selectors.studentList)[0];
+              Students.listNode.innerHTML = '';
+            }
+
+            loadStudents();
+
+            var renderCurrentStudentSegment = function (segment) {
+              
+              if(typeof(segment) === "undefined") {
+                segment = 0;
+              }
+
+              Students.range.current.begin = segment * Students.range.display;
+              Students.range.current.end = (segment * Students.range.display + Students.range.display) - 1;
+
+              var StudentsCurrentData = Students.data.slice(Students.range.current.begin, Students.range.current.end);
+
+              for(var i=0, len=StudentsCurrentData.length; i < len; i++){
+                Students.listNode.appendChild(StudentsCurrentData[i]);
+              }
+
+              /*
+                total = 54
+                segments = 6
+
+                Students.range.current.begin = 0
+                Students.range.current.end = 9
+
+                Students.range.current.begin = 10
+                Students.range.current.end = 19
+
+                Students.range.current.begin = 20
+                Students.range.current.end = 29
+
+                example:
+                2 * 10 = 20
+                2 * 10 + 10 - 1 = 29
+
+                (segment * Students.range.display) - 1 = total segment splice
+                (segment * Students.range.display + Students.range.display) - 1 = total segment slice
+
+              */
+
+              //
+
+            }
+
+            console.log(Students);
+
+            renderCurrentStudentSegment();
+
+          }
+
+          var test = studentsGenerator();
+
+        });
+
+      </script>
     </div>
   </body>
 </html>
