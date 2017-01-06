@@ -556,9 +556,8 @@
         </li>
       </ul>
       <!-- dynamically add pagination links here -->
-
-
-      <script>
+    </div>
+          <script>
 
         //DOM READY W/ OUT JQUERY work
         document.addEventListener("DOMContentLoaded", function(event) { 
@@ -596,8 +595,7 @@
               Students.data = [].slice.call(document.querySelectorAll(Students.selectors.studentItems));
               Students.length = Students.data.length;
               Students.range.segments = Math.ceil(Students.length / Students.range.display);
-              Students.listNode = document.querySelectorAll(Students.selectors.studentList)[0];
-              Students.listNode.innerHTML = '';
+              Students.listNode = document.querySelector(Students.selectors.studentList);
             }
 
             loadStudents();
@@ -613,39 +611,72 @@
 
               var StudentsCurrentData = Students.data.slice(Students.range.current.begin, Students.range.current.end);
 
+              Students.listNode.innerHTML = '';
+               
               for(var i=0, len=StudentsCurrentData.length; i < len; i++){
-                Students.listNode.appendChild(StudentsCurrentData[i]);
+                Students.listNode.appendChild( StudentsCurrentData[i] );
               }
-
-              /*
-                total = 54
-                segments = 6
-
-                Students.range.current.begin = 0
-                Students.range.current.end = 9
-
-                Students.range.current.begin = 10
-                Students.range.current.end = 19
-
-                Students.range.current.begin = 20
-                Students.range.current.end = 29
-
-                example:
-                2 * 10 = 20
-                2 * 10 + 10 - 1 = 29
-
-                (segment * Students.range.display) - 1 = total segment splice
-                (segment * Students.range.display + Students.range.display) - 1 = total segment slice
-
-              */
-
-              //
+              
+              console.log(Students.listNode);
+              
+              
 
             }
 
-            console.log(Students);
-
             renderCurrentStudentSegment();
+            
+            var renderPagination = function (segment) {
+
+              if(typeof(segment) === "undefined") {
+                segment = 0;
+              }
+
+              var obj_pageination_div = document.createElement('div');
+              obj_pageination_div.classList.add('pagination');
+
+              var obj_pageination_ul = document.createElement('ul');
+
+              var obj_pageination_li;
+              var obj_pageination_a;
+
+              for(var i=0, len=Students.range.segments; i < len; i++){
+
+                obj_pageination_li = document.createElement('li');
+                obj_pageination_a = document.createElement('a');
+                obj_pageination_a.innerHTML = (i+1);
+                obj_pageination_a.setAttribute('href', '#'+(i+1));
+
+                if(segment === i) {
+                  obj_pageination_a.classList.add('active');
+                }
+
+                obj_pageination_li.appendChild(obj_pageination_a);
+                obj_pageination_ul.appendChild(obj_pageination_li);
+
+                obj_pageination_a.addEventListener("click", function(){
+
+                  var obj_current_active = obj_pageination_div.querySelectorAll('.active');
+
+                  for(var i=0, len2=obj_current_active.length; i < len2; i++){
+                    obj_current_active[i].classList.remove('active');
+                  }
+
+                  this.classList.add('active');
+
+                  renderCurrentStudentSegment( (this.innerHTML - 1) )
+
+                }, false);
+
+              }
+
+              obj_pageination_div.appendChild(obj_pageination_ul);
+
+              Students.listNode.parentNode.appendChild(obj_pageination_div);
+              //Students.listNode.parentNode.insertBefore(obj_pageination_div, Students.listNode);
+
+            }
+            
+            renderPagination();
 
           }
 
@@ -654,7 +685,6 @@
         });
 
       </script>
-    </div>
   </body>
 </html>
 
