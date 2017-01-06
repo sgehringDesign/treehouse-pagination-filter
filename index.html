@@ -596,6 +596,11 @@
               Students.length = Students.data.length;
               Students.range.segments = Math.ceil(Students.length / Students.range.display);
               Students.listNode = document.querySelector(Students.selectors.studentList);
+
+              if(window.location.hash.length > 1) {
+                Students.range.current.segment = (window.location.hash[1] - 1);
+              } 
+              
             }
 
             loadStudents();
@@ -616,14 +621,10 @@
               for(var i=0, len=StudentsCurrentData.length; i < len; i++){
                 Students.listNode.appendChild( StudentsCurrentData[i] );
               }
-              
-              console.log(Students.listNode);
-              
-              
 
             }
 
-            renderCurrentStudentSegment();
+            renderCurrentStudentSegment( Students.range.current.segment );
             
             var renderPagination = function (segment) {
 
@@ -672,11 +673,10 @@
               obj_pageination_div.appendChild(obj_pageination_ul);
 
               Students.listNode.parentNode.appendChild(obj_pageination_div);
-              //Students.listNode.parentNode.insertBefore(obj_pageination_div, Students.listNode);
 
             }
-            
-            renderPagination();
+
+            renderPagination(Students.range.current.segment);
 
           }
 
