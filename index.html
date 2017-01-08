@@ -580,6 +580,141 @@
 
 
 
+
+
+            var searchfilterGenerator = function() {
+
+
+              // SET PROPERTIES (PRIVATE) ___________________________________________________________________________________________________
+              var SearchFilter = {
+                
+                feed: {
+                  ul: {
+                    selector: '.student-list',
+                    domElement: document.createElement('ul')
+                  },
+                  li: {
+                    selector: '.student-item',
+                  },
+                  data: [],
+                  domElements: [],
+                  h2Elements: []
+                },
+                search: {
+                  header: {
+                    selector: '.page-header',
+                    domElement: document.createElement('div')
+                  },
+                  div: {
+                    selector: '.student-search',
+                    domElement: document.createElement('div')
+                  },
+                  input: {
+                    placeholder: 'Search for students...',
+                    domElement: document.createElement('input')
+                  },
+                  button: {
+                    text: 'Search',
+                    domElement: document.createElement('button')
+                  } 
+                }
+              }
+
+
+
+              //- loadStudentsData() : (PRIVATE) -----------------------------------------------------------
+              //-- DESCRIPTION:    
+              //----- When the object initiates load students from "THE DOM" into the data proporty 
+              //----- Check for URL bookmark and load data based on current bookmark in the URL
+              //----- Intended to only be run on initiatiation
+              var loadFeedData = function () {
+                SearchFilter.feed.ul.domElement = document.querySelector( SearchFilter.feed.ul.selector );
+                SearchFilter.search.header.domElement = document.querySelector( SearchFilter.search.header.selector ); 
+                SearchFilter.feed.domElements = [].slice.call( document.querySelectorAll( SearchFilter.feed.li.selector ) );
+                SearchFilter.feed.h2Elements = [].slice.call( document.querySelectorAll('h3') );
+                
+                for(var i=0, len=SearchFilter.feed.h2Elements.length; i < len; i++) {
+                  SearchFilter.feed.data.push(SearchFilter.feed.h2Elements[i].innerHTML);
+                }
+                
+                console.log(SearchFilter);
+              }
+
+              loadFeedData();
+
+
+              //- removeActivePage() : (PRIVATE) -----------------------------------------------------------
+              //-- DESCRIPTION:    
+              //----- Remove active class on current pagination widget
+              var removeActivePage = function () {
+                var obj_current_active = document.querySelectorAll('.active');
+                for(var i=0, len2=obj_current_active.length; i < len2; i++){
+                  obj_current_active[i].classList.remove('active');
+                }
+              }
+
+
+              //- newPage() : (PRIVATE) -----------------------------------------------------------
+              //-- DESCRIPTION:    
+              //----- Function for changing to a new page and loading new data
+              var newSearch = function () {
+                removeActivePage();
+                
+                ary_results = SearchFilter.feed.domElements.filter(function (domElement, index) {
+
+                  var value = domElement.querySelector('h3').innerHTML;
+                  var searchterm = SearchFilter.search.input.domElement.value;
+
+                  if( value.indexOf(searchterm) > -1) {
+                    return domElement;
+                  } 
+
+                });
+
+                SearchFilter.feed.ul.domElement.innerHTML = '';
+
+                // For loop the spliced "ary_Current_Page_Data" and add to the feed UL to render the new paged results
+                for(var i=0, len=ary_results.length; i < len; i++){
+                  console.log(ary_results[i]);
+                  SearchFilter.feed.ul.domElement.appendChild( ary_results[i] ); 
+                }
+
+              }
+
+
+              //- renderSearchFilter() : (PRIVATE) -----------------------------------------------------------
+              //-- DESCRIPTION:    
+              //----- Renders the pagination module on the "page"  
+              var renderSearchFilter = function () {
+
+                SearchFilter.search.input.domElement.setAttribute('placeholder', SearchFilter.search.input.placeholder );
+                SearchFilter.search.button.domElement.innerHTML = SearchFilter.search.button.text;
+
+                SearchFilter.search.button.domElement.addEventListener("click", newSearch, false);
+
+                SearchFilter.search.div.domElement.classList.add( SearchFilter.search.div.selector.substr(1) ); 
+                SearchFilter.search.div.domElement.appendChild(SearchFilter.search.input.domElement);
+                SearchFilter.search.div.domElement.appendChild(SearchFilter.search.button.domElement);
+                SearchFilter.search.header.domElement.appendChild( SearchFilter.search.div.domElement );
+
+              }
+
+              renderSearchFilter();
+              
+              //newSearch();
+
+
+              
+
+            }
+
+
+            var obj_students_search = searchfilterGenerator();
+
+
+
+
+
             var paginationGenerator = function() {
 
 
@@ -682,11 +817,14 @@
             //- removeActivePage() : (PRIVATE) -----------------------------------------------------------
             //-- DESCRIPTION:    
             //----- Remove active class on current pagination widget
-            var removeActivePage = function (page) {
+            var removeActivePage = function () {
               var obj_current_active = Pagination.pagination.div.domElement.querySelectorAll('.active');
               for(var i=0, len2=obj_current_active.length; i < len2; i++){
                 obj_current_active[i].classList.remove('active');
               }
+              
+              var obj_input = document.querySelector('input');
+              obj_input.value = '';
             }
 
 
@@ -749,6 +887,9 @@
             }
             
             var obj_students = paginationGenerator();
+
+
+
           });
 
         </script>
