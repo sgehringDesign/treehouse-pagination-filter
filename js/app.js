@@ -11,6 +11,47 @@
 document.addEventListener("DOMContentLoaded", function(event) {
 
 
+
+  // SEARCHFILTER ====================================================================================
+  //-- DESCRIPTION: Adds search filter and filter results.
+  
+  //-- NOTES: Spent about several hours on this one...  
+  //---- Over time I think I could rewrite the code agian to be easier to read. 
+  //---- I wrote this so over time properties can be pased in on instatiation
+  //---- For now needs to be loaded before pagination.  I feel like I would need to write a data object that both modules to reffernce fix this bug
+
+  //-- PROPERTIES:
+  
+  //---- feed (object) : stores data reguarding the feed of data 
+  //-------- ul (object) : the object that store the feed ul selector and DOM object for later reference
+  //------------ selector (string) : the string that stores the feed classname selector
+  //------------ domElement (object) : the domElement that stores the feed ul element
+  //-------- li (object) : the object that store information about the feed li elements 
+  //------------ selector (string) : the string that stores the feed li classname selector
+  //-------- data (array) : the data pulled from the dom
+  
+  //---- search (object) : stores data reguarding the search module
+  //-------- header (object) : the object that store the header div selector and DOM object for later reference
+  //------------ selector (string) : the string that stores the header classname selector
+  //------------ domElement (object) : the domElement that stores the header element for later reference
+  //-------- div (object) : the object that stores search wrapper div info
+  //------------ selector (string) : the string that stores the search wrapper classname selector
+  //------------ domElement (string) :  the domElement that stores the header element for later reference
+  //-------- input (object) : the object that stores input info
+  //------------ placeholder (string) : the string that stores the input placeholder attribute
+  //------------ domElement (string) :  the domElement that stores the input element for later reference
+  //-------- button (object) : the object that stores button info
+  //------------ text (string) : the string that stores the button innnerhtml string
+  //------------ domElement (string) :  the domElement that stores the button element for later reference
+
+
+  //-- PRIVATE METHODS:
+  //----- loadFeedData() : loads elements on the dom and the data from the feed
+  //----- removeActivePage() : removes active state from pages after search button has been clicked
+  //----- newSearch() : searchs the data in the feed to find matches and renders the matches into the feed
+  //----- renderSearchFilter() : add the search widget to the page
+
+  
   var searchfilterGenerator = function() {
 
 
@@ -26,8 +67,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
           selector: '.student-item',
         },
         data: [],
-        domElements: [],
-        h2Elements: []
       },
       search: {
         header: {
@@ -54,19 +93,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
     //- loadStudentsData() : (PRIVATE) -----------------------------------------------------------
     //-- DESCRIPTION:    
     //----- When the object initiates load students from "THE DOM" into the data proporty 
-    //----- Check for URL bookmark and load data based on current bookmark in the URL
     //----- Intended to only be run on initiatiation
     var loadFeedData = function () {
-      SearchFilter.feed.ul.domElement = document.querySelector( SearchFilter.feed.ul.selector );
-      SearchFilter.search.header.domElement = document.querySelector( SearchFilter.search.header.selector ); 
-      SearchFilter.feed.domElements = [].slice.call( document.querySelectorAll( SearchFilter.feed.li.selector ) );
-      SearchFilter.feed.h2Elements = [].slice.call( document.querySelectorAll('h3') );
-      
-      for(var i=0, len=SearchFilter.feed.h2Elements.length; i < len; i++) {
-        SearchFilter.feed.data.push(SearchFilter.feed.h2Elements[i].innerHTML);
-      }
-      
-      console.log(SearchFilter);
+      SearchFilter.feed.ul.domElement = document.querySelector( SearchFilter.feed.ul.selector ); // Load Feed UL tag fro mthe DOM
+      SearchFilter.search.header.domElement = document.querySelector( SearchFilter.search.header.selector );  // Load Header Div tag from the DOM
+      SearchFilter.feed.data = [].slice.call( document.querySelectorAll( SearchFilter.feed.li.selector ) );  // Load All Students from the DOM
     }
 
     loadFeedData();
@@ -83,13 +114,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
 
-    //- newPage() : (PRIVATE) -----------------------------------------------------------
+    //- newSearch() : (PRIVATE) -----------------------------------------------------------
     //-- DESCRIPTION:    
-    //----- Function for changing to a new page and loading new data
+    //----- Function for changing data in the feed to match searched
     var newSearch = function () {
-      removeActivePage();
+      removeActivePage(); // Remove active page 
       
-      ary_results = SearchFilter.feed.domElements.filter(function (domElement, index) {
+      // Filter search the array of DOM elements to find a match
+      ary_results = SearchFilter.feed.data.filter(function (domElement, index) {
 
         var value = domElement.querySelector('h3').innerHTML;
         var searchterm = SearchFilter.search.input.domElement.value;
@@ -100,12 +132,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       });
 
+      // clear the current feed
       SearchFilter.feed.ul.domElement.innerHTML = '';
 
-      // For loop the spliced "ary_Current_Page_Data" and add to the feed UL to render the new paged results
+      // For loop the ary_results and add to the feed UL to render the new search results
       for(var i=0, len=ary_results.length; i < len; i++){
-        console.log(ary_results[i]);
-        SearchFilter.feed.ul.domElement.appendChild( ary_results[i] ); 
+        SearchFilter.feed.ul.domElement.appendChild( ary_results[i] ); // add dom element to UL tag
       }
 
     }
@@ -113,23 +145,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
     //- renderSearchFilter() : (PRIVATE) -----------------------------------------------------------
     //-- DESCRIPTION:    
-    //----- Renders the pagination module on the "page"  
+    //----- Renders the search module on the page
     var renderSearchFilter = function () {
 
-      SearchFilter.search.input.domElement.setAttribute('placeholder', SearchFilter.search.input.placeholder );
-      SearchFilter.search.button.domElement.innerHTML = SearchFilter.search.button.text;
+      SearchFilter.search.input.domElement.setAttribute('placeholder', SearchFilter.search.input.placeholder ); // set placeholder attribute on input
+      SearchFilter.search.button.domElement.innerHTML = SearchFilter.search.button.text; // set inner html on button 
 
-      SearchFilter.search.button.domElement.addEventListener("click", newSearch, false);
+      SearchFilter.search.button.domElement.addEventListener("click", newSearch, false); // Add click event for the button
 
-      SearchFilter.search.div.domElement.classList.add( SearchFilter.search.div.selector.substr(1) ); 
-      SearchFilter.search.div.domElement.appendChild(SearchFilter.search.input.domElement);
-      SearchFilter.search.div.domElement.appendChild(SearchFilter.search.button.domElement);
-      SearchFilter.search.header.domElement.appendChild( SearchFilter.search.div.domElement );
+      SearchFilter.search.div.domElement.classList.add( SearchFilter.search.div.selector.substr(1) );  // add class to div wrapper 
+      SearchFilter.search.div.domElement.appendChild(SearchFilter.search.input.domElement);  // add input to div wrapper
+      SearchFilter.search.div.domElement.appendChild(SearchFilter.search.button.domElement);  // add button to div wrapper
+      SearchFilter.search.header.domElement.appendChild( SearchFilter.search.div.domElement );  // add div wrapper to the DOM after the H2
 
     }
 
     renderSearchFilter();
-
 
 
   }
@@ -138,9 +169,53 @@ document.addEventListener("DOMContentLoaded", function(event) {
   var obj_students_search = searchfilterGenerator();
 
 
+
+
+  // PAGNIATION ====================================================================================
+  //-- DESCRIPTION: Adds pagination to the feed results in the DOM
+    
+  //-- NOTES: Spent about several hours on this one...  
+  //---- Over time I think I could rewrite the code agian to be easier to read. 
+  //---- I wrote this so over time properties can be pased in on instatiation
+
+  //-- PROPERTIES:
+  
+  //---- properties (object) : stores data reguarding the current state of pagination
+  //-------- displayed (int) : items to display
+  //------------ selector (string) : the string that stores the feed classname selector
+  //------------ domElement (object) : the domElement that stores the feed ul element
+  //-------- pages (int) : total pages. Set to 0 on init becuase the data has not been loaded
+  //------------ selector (string) : the string that stores the feed li classname selector
+  //-------- current (int) : current page
+  
+  //---- feed (object) : stores data reguarding the feed of data 
+  //-------- ul (object) : the object that store the feed ul selector and DOM object for later reference
+  //------------ selector (string) : the string that stores the feed classname selector
+  //------------ domElement (object) : the domElement that stores the feed ul element
+  //-------- li (object) : the object that store information about the feed li elements 
+  //------------ selector (string) : the string that stores the feed li classname selector
+  //-------- data (array) : the data pulled from the dom
+
+  //---- pagination (object) : stores data reguarding the pagination module 
+  //-------- active (object) : store the active page element and active css selector
+  //------------ selector (string) : active css selector
+  //------------ domElement (object) : current active dom element
+  //-------- div (object) : the object that store information about the pagination div wrapper 
+  //------------ selector (string) : the string that stores the pagination div classname selector
+  //------------ domElement (object) : current div wrapper dom element
+  //-------- ul (array) : the object that store information about the pagination ul list 
+  //------------ domElement (object) : current ul wrapper dom element
+
+  //-- PRIVATE METHODS:
+  //----- loadFeedData() : loads elements on the dom and the data from the feed and check for bookmarks in the url
+  //----- renderFeed() : render the current feed data on the page
+  //----- removeActivePage() : removes active state from pages after search button has been clicked
+  //----- newPage() : function get binded to each pagination button. once clicked changes the feed data and state of the pagination buttons
+  //----- renderPagination() : add the pagination widget to the page
+
+
+
   var paginationGenerator = function() {
-
-
 
     // SET PROPERTIES (PRIVATE) ___________________________________________________________________________________________________
     var Pagination = {
