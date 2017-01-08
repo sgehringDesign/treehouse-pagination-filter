@@ -1,6 +1,6 @@
 
 
-// QUOTES ====================================================================================
+// SEARCH FILTER & PAGINATION ====================================================================================
 //-- DESCRIPTION: UNOBTRUSSIVE NON JQUERY PAGINATION BASED ON PRELOADED DOM ELEMENTS
 
 //-- NOTES: 
