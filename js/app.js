@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         button: {
           text: 'Search',
           domElement: document.createElement('button')
-        } 
+        }
       }
     }
 
@@ -145,6 +145,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
             
       if(ary_results.length === 0){
         SearchFilter.feed.ul.domElement.innerHTML = '<li><div class="student-details"><h3>Sorry No Results Found</h3></div></li>'; // no results found 
+        return;
       }
 
       // For loop the ary_results and add to the feed UL to render the new search results
