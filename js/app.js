@@ -8,11 +8,6 @@
 //---- 2) At this point not sure why I need public properties as changing them outside the object seems to introduce risk of issues...
 //---- 3) I am missing jquery or mootools right about now....
 
-//---- 4) In this version I am leaving out interaction between search and paging as I feel like i would need to change the UI in the givin requirments to have a clear search button this way the user can return to orginal results. Which was not provided in the design spec.  
-
-//---- 5) In this version I am leaving out interaction between search and paging I think I would also need to rewrite some things. I think I would need to write a data object that has some public methods for grabing the data and sending to to variouse widgets on the page. Maybe what I will do is create another github repo with version 3 and rewrite this code over longer time span...   But at the moment I have full time job and mouths to feed on top of this class :)
-
-
 
 
 document.addEventListener("DOMContentLoaded", function(event) {
