@@ -193,6 +193,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   //-- PROPERTIES:
   
   //---- properties (object) : stores data reguarding the current state of pagination
+  //-------- page_limit (int) : treehouse page limit project requirment
   //-------- displayed (int) : items to display
   //------------ selector (string) : the string that stores the feed classname selector
   //------------ domElement (object) : the domElement that stores the feed ul element
@@ -234,7 +235,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       // Pagination_Obj.properties (PRIVATE) : GLOBAL PROPERTIES OBJECT FOR MANAGING CURRENT PAGINATION STATE ---------------------
       properties: {
-        displayed: 10,
+        page_limit: 5,
+        displayed: 0,
         pages: 0,
         current: 0
       },
@@ -281,12 +283,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
     var loadFeedData = function () {
   
       Pagination.feed.data = [].slice.call( document.querySelectorAll( Pagination.feed.li.selector ) );               // Get students from the DOM. I use the "call" to convert to array verse node a object
-      Pagination.properties.pages = Math.ceil( Pagination.feed.data.length / Pagination.properties.displayed );   // Equation to set number of total pages based on ata loaded
-      Pagination.feed.ul.domElement = document.querySelector( Pagination.feed.ul.selector );                          // Equation to set number of total pages based on ata loaded
+
+      Pagination.properties.displayed = Math.ceil(Pagination.feed.data.length / Pagination.properties.page_limit); // Ensuring results are 5 pages long
+
+      Pagination.properties.pages     = Math.ceil( Pagination.feed.data.length / Pagination.properties.displayed );   // Equation to set number of total pages based on ata loaded
+      Pagination.feed.ul.domElement   = document.querySelector( Pagination.feed.ul.selector );                          // Equation to set number of total pages based on ata loaded
   
       if(window.location.hash.length > 1) {
         Pagination.properties.current = (window.location.hash[1] - 1);
-      } 
+      }  
 
     }
 
