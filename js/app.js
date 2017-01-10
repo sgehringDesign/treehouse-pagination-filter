@@ -8,6 +8,13 @@
 //---- 2) At this point not sure why I need public properties as changing them outside the object seems to introduce risk of issues...
 //---- 3) I am missing jquery or mootools right about now....
 
+//---- 4) In this version I am leaving out interaction between search and paging as I feel like i would need to change the UI in the givin requirments to have a clear search button this way the user can return to orginal results. Which was not provided in the design spec.  
+
+//---- 5) In this version I am leaving out interaction between search and paging I think I would also need to rewrite some things. I think I would need to write a data object that has some public methods for grabing the data and sending to to variouse widgets on the page. Maybe what I will do is create another github repo with version 3 and rewrite this code over longer time span...   But at the moment I have full time job and mouths to feed on top of this class :)
+
+
+
+
 document.addEventListener("DOMContentLoaded", function(event) {
 
 
@@ -118,6 +125,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     //-- DESCRIPTION:    
     //----- Function for changing data in the feed to match searched
     var newSearch = function () {
+      
       removeActivePage(); // Remove active page 
       
       // Filter search the array of DOM elements to find a match
@@ -125,8 +133,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
         var value = domElement.querySelector('h3').innerHTML;
         var searchterm = SearchFilter.search.input.domElement.value;
+        
+        if(searchterm.length === 0) {
+          return false;
+        }
 
-        if( value.indexOf(searchterm) > -1) {
+        // if search is blank
+        if( value.indexOf(searchterm) == 0) {
           return domElement;
         } 
 
@@ -134,6 +147,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       // clear the current feed
       SearchFilter.feed.ul.domElement.innerHTML = '';
+            
+      if(ary_results.length === 0){
+        SearchFilter.feed.ul.domElement.innerHTML = '<li><div class="student-details"><h3>Sorry No Results Found</h3></div></li>'; // no results found 
+      }
 
       // For loop the ary_results and add to the feed UL to render the new search results
       for(var i=0, len=ary_results.length; i < len; i++){
@@ -222,7 +239,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       // Pagination_Obj.properties (PRIVATE) : GLOBAL PROPERTIES OBJECT FOR MANAGING CURRENT PAGINATION STATE ---------------------
       properties: {
-        displayed: 10,
+        displayed: 12,
         pages: 0,
         current: 0
       },
@@ -295,8 +312,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
       }
 
       var int_feed_begin = page * Pagination.properties.displayed; // Equation to get start index
-      var int_feed_end = ( int_feed_begin + Pagination.properties.displayed ) - 1;              // Equation to get end index
-
+      var int_feed_end = ( int_feed_begin + Pagination.properties.displayed );              // Equation to get end index
+      
       var ary_current_page_data = Pagination.feed.data.slice( int_feed_begin, int_feed_end );   // Set splicded array chunk to current_recordset
 
       Pagination.feed.ul.domElement.innerHTML = '';                                                // Clear feed UL element of older data
