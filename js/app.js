@@ -239,7 +239,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       // Pagination_Obj.properties (PRIVATE) : GLOBAL PROPERTIES OBJECT FOR MANAGING CURRENT PAGINATION STATE ---------------------
       properties: {
-        displayed: 12,
+        displayed: 10,
         pages: 0,
         current: 0
       },
