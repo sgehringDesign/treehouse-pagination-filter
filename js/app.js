@@ -14,6 +14,177 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
 
+
+
+
+
+
+
+  // SEARCH DATA OBJECT =========================================================================================================
+  //-- DESCRIPTION: Object that stroes the printed results from the DOM and the page state.
+
+  //-- NOTES: Spent about several hours on this one...  
+
+  //-- PRIVATE METHODS:
+  //----- loadData() : loads elements on the dom and the data from the feed
+
+  //-- PUBLIC METHODS:
+  //----- getLength() : Get the length of stored data and returns a int
+  //----- getDataItem(int_index) : Get one item from the data array - argument must be a integer for a int_index - returns false or a domElement from the data array
+  //----- getDataSegment(int_begin, int_end ) : Get a segment from the data array - argument for begning and end must be a integer - returns false or an array of domElements
+  //----- searchData(str_term, selector) : Search dom element in the array based on the value in str_term - argument for str_term and selector must be a string - returns false or an array of domElements 
+
+  var obj_DOMDataModule = (function(exports) {
+    'use strict';
+
+
+    // SET PROPERTIES (PUBLIC) ___________________________________________________________________________________________________
+    var exports = {
+      selector: '.student-item',
+      state: 'unloaded',  // 'unloaded' || 'loaded' || 'search' || 'browsing'
+    }
+
+
+    // SET PROPERTIES (PRIVATE) ___________________________________________________________________________________________________
+    var data = [];
+
+
+    // SET METHODS (PRIVATE) ______________________________________________________________________________________________________
+
+    // LOAD THE DATA FROM THE DOM (PRIVATE) -------------------------------------------------------------------
+    var loadData = function() {
+      data = [].slice.call( document.querySelectorAll( exports.selector ) );  // Load All Students from the DOM
+      exports.state = 'loaded';
+    }
+    
+    loadData();
+
+
+    // SET METHODS (PUBLIC) ________________________________________________________________________________________________________
+
+
+    // GET DATA LENGTH (PUBLIC)-----------------------------------------------------------------------------------
+    exports.getLength = function() {
+      return data.length;
+    }
+
+
+    // GET DATA ITEM (PUBLIC)-----------------------------------------------------------------------------------
+    exports.getDataItem = function(int_index) {
+      
+      //Type check for int
+      if(!(int_index === parseInt(int_index, 10))) {
+        console.error( 'obj_DOMDataModule.getDataItem() : Bad type passed for "int_index". This needs to be a int');
+        return false;
+      }
+
+      // Check for number lager then current data size
+      if(data.length < int_index || 0 > int_index) {
+        console.warn( 'obj_DOMDataModule.getDataItem() : Passed "int_index" value is out of range of the loaded data array');
+        return false;
+      }
+
+      return data[int_index];
+    }
+
+
+    // GET DATA FROM THE OBJECT (PUBLIC) ------------------------------------------------------------------------
+    exports.getDataSegment = function(int_begin, int_end ) {
+
+      //Type check for int_begin
+      if(!(int_begin === parseInt(int_begin, 10))) {
+        console.error( 'obj_DOMDataModule.getDataSegment() : Bad type passed for "int_begin". This needs to be a int');
+        return false;
+      }
+
+       //Type check for int_end
+      if(!(int_end === parseInt(int_end, 10))) {
+        console.error( 'obj_DOMDataModule.getDataSegment() : Bad type passed for "int_end". This needs to be a int');
+        return false;
+      }
+
+      // Check for int_begin lager then current data size
+      if(data.length < int_begin || 0 > int_begin) {
+        console.warn( 'obj_DOMDataModule.getDataItem() : Passed "int_begin" value is out of range of the loaded data array');
+        return false;
+      }
+      
+      // Check for int_end lager then current data size
+      if(data.length < int_end || 0 > int_end) {
+        console.warn( 'obj_DOMDataModule.getDataItem() : Passed "int_end" value is out of range of the loaded data array');
+        return false;
+      }
+
+      return data.slice( int_begin, int_end );
+    }
+    
+    
+    // SEARCH DATA FROM THE OBJECT (PUBLIC) ----------------------------------------------------------------------
+    exports.searchData = function(str_term, selector) {
+
+
+      //Type check for str_term to string
+      if(typeof str_term !== "string") {
+        console.error( 'obj_DOMDataModule.searchData() : Bad type passed for "str_term". This needs to be a string');
+        return;
+      }
+
+      //Type check for selector to string
+      if(typeof selector !== "string") {
+        console.error( 'obj_DOMDataModule.searchData() : Bad type passed for "selector". This needs to be a string');
+        return;
+      }
+
+
+      //Check for blank search term
+      if( str_term.length === 0) {
+        return false;
+      }
+
+
+      // Filter search the array of DOM elements to find a match
+      var ary_results = data.filter( function (domElement, index) {
+
+        var value = domElement.querySelector(selector).innerHTML;  // get inner string to be searched in dom element
+
+        // Search term index of to check form match
+        if( value.indexOf(str_term) == 0) {
+          return domElement; // return element to array
+        } 
+
+      });
+
+      return ary_results;
+
+    }
+
+
+    return exports;
+
+
+  }( obj_DOMDataModule || {} ));
+
+
+  //console.log( obj_DOMDataModule);
+  //console.log( obj_DOMDataModule.getLength());
+  //console.log( obj_DOMDataModule.getDataItem(1));
+  //console.log( obj_DOMDataModule.getDataSegment(-1, 200));
+  //console.log( obj_DOMDataModule.searchData('a', 'h3'));
+  
+
+
+
+
+
+
+
+
+
+/*
+
+
+
+
   // SEARCHFILTER ====================================================================================
   //-- DESCRIPTION: Adds search filter and filter results.
   
@@ -404,6 +575,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
   var obj_students = paginationGenerator();
 
-
+*/
 
 });
