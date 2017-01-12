@@ -236,8 +236,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       // Pagination_Obj.properties (PRIVATE) : GLOBAL PROPERTIES OBJECT FOR MANAGING CURRENT PAGINATION STATE ---------------------
       properties: {
-        page_limit: 5,
-        displayed: 0,
+        //page_limit: 5,
+        displayed: 10,
         pages: 0,
         current: 0
       },
@@ -283,11 +283,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
     //----- Intended to only be run on initiatiation
     var loadFeedData = function () {
   
-      Pagination.feed.data = [].slice.call( document.querySelectorAll( Pagination.feed.li.selector ) );               // Get students from the DOM. I use the "call" to convert to array verse node a object
+      Pagination.feed.data = [].slice.call( document.querySelectorAll( Pagination.feed.li.selector ) );                 // Get students from the DOM. I use the "call" to convert to array verse node a object
 
-      Pagination.properties.displayed = Math.ceil(Pagination.feed.data.length / Pagination.properties.page_limit); // Ensuring results are 5 pages long
+      //Pagination.properties.displayed = Math.ceil(Pagination.feed.data.length / Pagination.properties.page_limit);      // Ensuring results are 5 pages long
 
-      Pagination.properties.pages     = Math.ceil( Pagination.feed.data.length / Pagination.properties.displayed );   // Equation to set number of total pages based on ata loaded
+      Pagination.properties.pages     = Math.ceil( Pagination.feed.data.length / Pagination.properties.displayed );     // Equation to set number of total pages based on ata loaded
       Pagination.feed.ul.domElement   = document.querySelector( Pagination.feed.ul.selector );                          // Equation to set number of total pages based on ata loaded
   
       if(window.location.hash.length > 1) {
