@@ -8,6 +8,8 @@
 //---- 2) At this point not sure why I need public properties as changing them outside the object seems to introduce risk of issues...
 //---- 3) I am missing jquery or mootools right about now....
 
+
+
 document.addEventListener("DOMContentLoaded", function(event) {
 
 
@@ -84,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         button: {
           text: 'Search',
           domElement: document.createElement('button')
-        } 
+        }
       }
     }
 
@@ -118,6 +120,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     //-- DESCRIPTION:    
     //----- Function for changing data in the feed to match searched
     var newSearch = function () {
+      
       removeActivePage(); // Remove active page 
       
       // Filter search the array of DOM elements to find a match
@@ -125,8 +128,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
         var value = domElement.querySelector('h3').innerHTML;
         var searchterm = SearchFilter.search.input.domElement.value;
+        
+        if(searchterm.length === 0) {
+          return false;
+        }
 
-        if( value.indexOf(searchterm) > -1) {
+        // if search is blank
+        if( value.indexOf(searchterm) == 0) {
           return domElement;
         } 
 
@@ -134,6 +142,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       // clear the current feed
       SearchFilter.feed.ul.domElement.innerHTML = '';
+            
+      if(ary_results.length === 0){
+        SearchFilter.feed.ul.domElement.innerHTML = '<li><div class="student-details"><h3>Sorry No Results Found</h3></div></li>'; // no results found 
+        return;
+      }
 
       // For loop the ary_results and add to the feed UL to render the new search results
       for(var i=0, len=ary_results.length; i < len; i++){
@@ -181,6 +194,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   //-- PROPERTIES:
   
   //---- properties (object) : stores data reguarding the current state of pagination
+  //-------- page_limit (int) : treehouse page limit project requirment
   //-------- displayed (int) : items to display
   //------------ selector (string) : the string that stores the feed classname selector
   //------------ domElement (object) : the domElement that stores the feed ul element
@@ -222,6 +236,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       // Pagination_Obj.properties (PRIVATE) : GLOBAL PROPERTIES OBJECT FOR MANAGING CURRENT PAGINATION STATE ---------------------
       properties: {
+        //page_limit: 5,
         displayed: 10,
         pages: 0,
         current: 0
@@ -268,13 +283,16 @@ document.addEventListener("DOMContentLoaded", function(event) {
     //----- Intended to only be run on initiatiation
     var loadFeedData = function () {
   
-      Pagination.feed.data = [].slice.call( document.querySelectorAll( Pagination.feed.li.selector ) );               // Get students from the DOM. I use the "call" to convert to array verse node a object
-      Pagination.properties.pages = Math.ceil( Pagination.feed.data.length / Pagination.properties.displayed );   // Equation to set number of total pages based on ata loaded
-      Pagination.feed.ul.domElement = document.querySelector( Pagination.feed.ul.selector );                          // Equation to set number of total pages based on ata loaded
+      Pagination.feed.data = [].slice.call( document.querySelectorAll( Pagination.feed.li.selector ) );                 // Get students from the DOM. I use the "call" to convert to array verse node a object
+
+      //Pagination.properties.displayed = Math.ceil(Pagination.feed.data.length / Pagination.properties.page_limit);      // Ensuring results are 5 pages long
+
+      Pagination.properties.pages     = Math.ceil( Pagination.feed.data.length / Pagination.properties.displayed );     // Equation to set number of total pages based on ata loaded
+      Pagination.feed.ul.domElement   = document.querySelector( Pagination.feed.ul.selector );                          // Equation to set number of total pages based on ata loaded
   
       if(window.location.hash.length > 1) {
         Pagination.properties.current = (window.location.hash[1] - 1);
-      } 
+      }  
 
     }
 
@@ -295,8 +313,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
       }
 
       var int_feed_begin = page * Pagination.properties.displayed; // Equation to get start index
-      var int_feed_end = ( int_feed_begin + Pagination.properties.displayed ) - 1;              // Equation to get end index
-
+      var int_feed_end = ( int_feed_begin + Pagination.properties.displayed );              // Equation to get end index
+      
       var ary_current_page_data = Pagination.feed.data.slice( int_feed_begin, int_feed_end );   // Set splicded array chunk to current_recordset
 
       Pagination.feed.ul.domElement.innerHTML = '';                                                // Clear feed UL element of older data
