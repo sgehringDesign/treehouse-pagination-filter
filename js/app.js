@@ -14,13 +14,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
 
-
-
-
-
-
-
-  // SEARCH DATA OBJECT =========================================================================================================
+  // DATA OBJECT ============================================================================================================================================
   //-- DESCRIPTION: Object that stroes the printed results from the DOM and the page state.
 
   //-- NOTES: Spent about several hours on this one...  
@@ -29,6 +23,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
   //----- loadData() : loads elements on the dom and the data from the feed
 
   //-- PUBLIC METHODS:
+  //----- getState() : Get the state of data
   //----- getLength() : Get the length of stored data and returns a int
   //----- getDataItem(int_index) : Get one item from the data array - argument must be a integer for a int_index - returns false or a domElement from the data array
   //----- getDataSegment(int_begin, int_end ) : Get a segment from the data array - argument for begning and end must be a integer - returns false or an array of domElements
@@ -38,34 +33,40 @@ document.addEventListener("DOMContentLoaded", function(event) {
     'use strict';
 
 
-    // SET PROPERTIES (PUBLIC) ___________________________________________________________________________________________________
+    // PROPERTIES (PUBLIC) ___________________________________________________________________________________________________
     var exports = {
       selector: '.student-item',
-      state: 'unloaded',  // 'unloaded' || 'loaded' || 'search' || 'browsing'
+ 
+    }
+
+     // PROPERTIES (PRIVATE) ___________________________________________________________________________________________________
+    var _ = {
+      loaded: false,  // 'unloaded' || 'loaded'
+      data: [],
     }
 
 
-    // SET PROPERTIES (PRIVATE) ___________________________________________________________________________________________________
-    var data = [];
-
-
-    // SET METHODS (PRIVATE) ______________________________________________________________________________________________________
+    // METHODS (PRIVATE) ______________________________________________________________________________________________________
 
     // LOAD THE DATA FROM THE DOM (PRIVATE) -------------------------------------------------------------------
-    var loadData = function() {
-      data = [].slice.call( document.querySelectorAll( exports.selector ) );  // Load All Students from the DOM
-      exports.state = 'loaded';
+    !(function() {
+      _.data = [].slice.call( document.querySelectorAll( exports.selector ) );  // Load All Students from the DOM
+      _.loaded = true;
+    }());
+
+
+
+    // METHODS (PUBLIC) ________________________________________________________________________________________________________
+
+    // GET DATA LENGTH (PUBLIC)-----------------------------------------------------------------------------------
+    exports.isLoaded= function() {
+      return _.loaded;
     }
-    
-    loadData();
-
-
-    // SET METHODS (PUBLIC) ________________________________________________________________________________________________________
 
 
     // GET DATA LENGTH (PUBLIC)-----------------------------------------------------------------------------------
     exports.getLength = function() {
-      return data.length;
+      return _.data.length;
     }
 
 
@@ -79,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
       }
 
       // Check for number lager then current data size
-      if(data.length < int_index || 0 > int_index) {
+      if(_.data.length < int_index || 0 > int_index) {
         console.warn( 'obj_DOMDataModule.getDataItem() : Passed "int_index" value is out of range of the loaded data array');
         return false;
       }
@@ -104,18 +105,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
       }
 
       // Check for int_begin lager then current data size
-      if(data.length < int_begin || 0 > int_begin) {
+      if(_.data.length < int_begin || 0 > int_begin) {
         console.warn( 'obj_DOMDataModule.getDataItem() : Passed "int_begin" value is out of range of the loaded data array');
         return false;
       }
-      
-      // Check for int_end lager then current data size
-      if(data.length < int_end || 0 > int_end) {
-        console.warn( 'obj_DOMDataModule.getDataItem() : Passed "int_end" value is out of range of the loaded data array');
-        return false;
-      }
 
-      return data.slice( int_begin, int_end );
+      return _.data.slice( int_begin, int_end );
+
     }
     
     
@@ -143,7 +139,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
       // Filter search the array of DOM elements to find a match
-      var ary_results = data.filter( function (domElement, index) {
+      var ary_results = _.data.filter( function (domElement, index) {
 
         var value = domElement.querySelector(selector).innerHTML;  // get inner string to be searched in dom element
 
@@ -165,12 +161,241 @@ document.addEventListener("DOMContentLoaded", function(event) {
   }( obj_DOMDataModule || {} ));
 
 
-  //console.log( obj_DOMDataModule);
-  //console.log( obj_DOMDataModule.getLength());
-  //console.log( obj_DOMDataModule.getDataItem(1));
-  //console.log( obj_DOMDataModule.getDataSegment(-1, 200));
-  //console.log( obj_DOMDataModule.searchData('a', 'h3'));
+  // console.log( obj_DOMDataModule);
+  // console.log( obj_DOMDataModule.getLength());
+  // console.log( obj_DOMDataModule.getDataItem(1));
+  // console.log( obj_DOMDataModule.getDataSegment(-1, 200));
+  // console.log( obj_DOMDataModule.searchData('a', 'h3'));
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // PAGE FEED ============================================================================================================================================
+ 
+  var obj_Feed = (function(exports) {
+    'use strict';
+
+    // SET PROPERTIES (PUBLIC) ___________________________________________________________________________________________________
+    var exports = {
+      selector: '.student-list',
+      displayed: 10,
+    }
+
+    // SET PROPERTIES (PRIVATE) ___________________________________________________________________________________________________
+    var _ = {
+      total: 0,
+      pages: 0,
+      state: 'unloaded',
+      current: {
+        type : 'page',
+        value: 0,
+      },
+      feed: document.querySelector( exports.selector),
+      paging: {
+        selector: '.pagination',
+        domElement: document.createElement('div'),
+      },
+      data: [],
+    }
+
+
+
+    // METHODS (PRIVATE) ________________________________________________________________________________________________________
+
+
+    // LOAD URL BOOKMARK (PRIVATE) -------------------------------------------------------------------
+    !(function() {
+
+      if(window.location.hash.length < 1) {
+        return;
+      }
+
+      _.current.value = window.location.hash.substr(1);
+
+      if(!isNaN(_.current.value) && parseInt(Number(_.current.value)) == _.current.value && !isNaN(parseInt(_.current.value, 10))) {
+        _.current.value = _.current.value - 1;
+        _.current.type = 'page';
+      } else {
+        _.current.type = 'search';
+      }
+
+    }());
+
+
+    // CHECK FOR obj_DOMDataModule (PRIVATE) -------------------------------------------------------
+    // I put this in obj_DOMDataModule so one widget does not change the data. The data is more protected. 
+    !(function() {
+
+      if(typeof obj_DOMDataModule === "undefined") {
+        console.error( 'obj_Feed._init() : obj_DOMDataModule is undefined');
+        return exports;
+      }
+
+      if(!obj_DOMDataModule.isLoaded()) {
+        console.error( 'obj_Feed._init() : obj_DOMDataModule not loaded');
+        return exports;
+      } 
+
+      if(_.current.type === 'search' ) {
+        _.data = obj_DOMDataModule.searchData( _.current.value, 'h3');
+        _.total = _.data.length;
+        _.pages = Math.ceil( _.total / exports.displayed );
+      }
+
+      if(_.current.type === 'page' ) {
+        _.total = obj_DOMDataModule.getLength();
+        _.pages = Math.ceil( _.total / exports.displayed );
+        _.data = obj_DOMDataModule.getDataSegment( ( _.current.value * exports.displayed ), ( ( _.current.value * exports.displayed ) + exports.displayed) );
+      }
+
+
+    }());
+
+
+    _.clearFeed = function () {
+      _.feed.innerHTML = '';
+
+      var obj_current_active = _.paging.domElement.querySelectorAll('.active');
+
+      for(var i=0, len=obj_current_active.length; i < len; i++){
+        obj_current_active[i].classList.remove('active');
+      }
+
+    }
+
+
+    _.getDataSegment = function (page, displayed) {
+      return obj_DOMDataModule.getDataSegment( ( page * displayed ), ( ( page * displayed ) + displayed) );
+    }
+
+
+    // METHODS (PUBLIC) ________________________________________________________________________________________________________
+
+    _.renderFeed = function (pagedData) {
+
+      // For loop the spliced "ary_Current_Page_Data" and add to the feed UL to render the new paged results
+      for(var i=0, len=pagedData.length; i < len; i++){
+        _.feed.appendChild( pagedData[i] ); 
+      }
+
+    }
+
+    _.newPage = function (pagedData) {
+
+      _.clearFeed();
+      this.classList.add('active');                                                                 // Add active to current clicked item
+      _.renderFeed( _.getDataSegment( (this.innerHTML - 1),  exports.displayed) );             // Render current data
+
+    }
+
+
+    _.renderPagination = function (total, current) {
+
+      // Create temp obj variable to build pagination list elements
+      var obj_ul = document.createElement('ul');                            // Define UL Element - More for Clarity
+      var obj_li = document.createElement('li');                            // Define Li Element - More for Clarity
+      var obj_a  = document.createElement('a');                             // Define A Element  - More for Clarity
+
+      // Add class to pagination wrapper DIV
+      _.paging.domElement.classList.add( _.paging.selector.substr(1) );     // Add Class
+      
+
+      for(var i=0, len=total; i < len; i++) {
+
+        obj_li = document.createElement('li');                              // Reset Li Element
+        obj_a  = document.createElement('a');                               // Reset A Element
+        obj_a.innerHTML = (i+1);                                            // Add innerHTML
+        obj_a.setAttribute('href', '#'+(i+1));                              // Add HREF attribute
+
+        
+        if(current == i) {
+          obj_a.classList.add('active');                                    // Add class active
+        }
+
+        obj_a.addEventListener("click", _.newPage, false);
+        obj_li.appendChild(obj_a);                                          // Append A tag to UL
+        obj_ul.appendChild(obj_li);                                         // Append LI tag to UL
+
+      }
+
+      _.paging.domElement.appendChild(obj_ul);                              // Add UL pagination list to the pagination div 
+      _.feed.parentNode.appendChild( _.paging.domElement );                 // Add pagination widget to the DOM
+
+    }
+
+
+    _.renderSearch = function () {
+
+      var obj_header = document.querySelector('.page-header');
+      var obj_div = document.createElement('div');
+      var obj_input = document.createElement('input');
+      var obj_button = document.createElement('button');
+
+      obj_div.classList.add( 'student-search' );
+      obj_input.setAttribute('placeholder', 'Search for students...' );
+      
+      if(_.current.type === 'search') {
+        obj_input.value = _.current.value;
+      }
+      
+      obj_button.innerHTML = 'Search';
+      //obj_button.addEventListener("click", newSearch, false); 
+
+      obj_div.appendChild(obj_input);
+      obj_div.appendChild(obj_button);
+
+      obj_header.appendChild( obj_div );
+
+    }
+
+
+    !(function() {
+
+      _.clearFeed();
+      _.renderSearch();
+      _.renderFeed(_.data);
+
+      if( _.total > exports.displayed ) {
+        _.renderPagination( _.pages, _.current.value );
+      }
+
+    }());
+    
+
+    return exports;
+
+
+  }( obj_Feed || {} ));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -488,7 +713,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
       
       var ary_current_page_data = Pagination.feed.data.slice( int_feed_begin, int_feed_end );   // Set splicded array chunk to current_recordset
 
-      Pagination.feed.ul.domElement.innerHTML = '';                                                // Clear feed UL element of older data
+      Pagination.feed.ul.domElement.innerHTML = '';   // Clear feed UL element of older data
 
       // For loop the spliced "ary_Current_Page_Data" and add to the feed UL to render the new paged results
       for(var i=0, len=ary_current_page_data.length; i < len; i++){
