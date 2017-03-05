@@ -238,6 +238,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
       var obj_a  = document.createElement('a');                             // Define A Element  - More for Clarity
 
       if(_.debug === true) { 
+
         console.group('Local Variables'); 
 
         console.log('total: '+ total); 
@@ -248,6 +249,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
         console.log('exports.pagination.substr(1): '+ exports.pagination.substr(1)); 
         console.groupEnd();
+
       }
 
       // Add class to pagination wrapper DIV
@@ -418,8 +420,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
         console.groupEnd(); 
       }
 
+      console.log(ary_results);
+
       if(ary_results.length === 0){
-        _.feed.domElement.innerHTML = '<li><div class="'+_.feed.selector+'"><h3>Sorry No Results Found</h3></div></li>'; // no results found 
+        _.feed.innerHTML = '<li><div class="'+_.feed.selector+'"><h3>Sorry No Results Found</h3></div></li>'; // no results found 
         return;
       }
 
