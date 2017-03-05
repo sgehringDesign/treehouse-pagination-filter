@@ -48,10 +48,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
       debug: true,
       data: {
         loaded: [].slice.call( document.querySelectorAll( exports.feed_LI ) ),
-        current: [].slice.call( document.querySelectorAll( exports.feed_LI ) ),
+        current: [],
         searched: [],
       },
       pages: 0,
+      segment:  0,
       page:  0,
       search: {
         domElement: document.querySelector( exports.search_header ),
@@ -62,46 +63,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
       paging: document.createElement('div'),
     }
 
-    // SET  CURRENT DATA ARRAY ------------------------------------------------------
-    _.setCurrentData = function (dataArray) {
-      _.data.current = dataArray;
-    }
 
-    // CLEAR FEED (PRIVATE) -------------------------------------------------------------------
-    _.clearFeed = function () {
-
-      if(_.debug === true) { 
-        console.group('Runing _.clearFeed()');
-      }
-
-      _.feed.innerHTML = ''; // clear ul list element
-      var obj_paging_active = _.paging.querySelectorAll('.active');  // get all active elements 
-
-      if(_.debug === true) { 
-        console.group('Loop obj_paging_active');
-        console.log(obj_paging_active); 
-      }
-
-      for(var i=0, len=obj_paging_active.length; i < len; i++){
-        obj_paging_active[i].classList.remove('active');  // remove all active elements 
-        if(_.debug === true) { 
-          console.log('obj_paging_active['+i+']: ');
-          console.log(obj_paging_active[i]);
-        }
-      }
-
-      if(_.debug === true) { 
-        console.groupEnd(); 
-        console.groupEnd(); 
-      }
-
-    }
+    // UTILITY METHODS =======================================================================================================
 
 
-    // GET QSTRING IN URL ------------------------------------------------------
+    // GET PARAMETER BY NAME (PRIVATE) -------------------------------------------------------------------
     _.getParameterByName = function(name) {
-
-      if(_.debug === true) { console.group('Runing _.getParameterByName()'); }
 
       var url = window.location.href;      
       var name = name.replace(/[\[\]]/g, "\\$&");
@@ -109,6 +76,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
       var results = regex.exec(url);
 
       if(_.debug === true) { 
+        console.group('Runing _.getParameterByName()');
         console.log('url: '+ url); 
         console.log('name: '+ name); 
         console.log('regex: '+ regex); 
@@ -124,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     } 
 
 
-    // UPDATE URLS QSTRING IN BROWSER HISTORY ------------------------------------------------------
+    // UPDATE PARAMETER NAME (PRIVATE) -------------------------------------------------------------------
     _.updateParameter = function(querystring) {
 
       if(_.debug === true) { console.group('Runing _.updateParameter()'); }
@@ -144,10 +112,79 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
 
+    // SET CURRENT DATA ARRAY (PRIVATE) ---------------------------------------------------------------
+    _.setCurrentData = function (dataArray) {
+
+      if(_.debug === true) { 
+        console.group('Runing _.setCurrentData()');
+        console.log(dataArray); 
+        console.groupEnd(); 
+      }
+
+      _.data.current = dataArray;
+      _.pages = Math.ceil( dataArray.length / exports.displayed );
+    }
+
+
+    // CLEAR PAGINATION (PRIVATE) ---------------------------------------------------------------
+    _.clearPagination = function () {
+      var pagination = document.getElementsByClassName(exports.pagination.substr(1));
+
+      if(_.debug === true) { 
+        console.group('Runing _.clearPagination()');
+        console.log(pagination);
+      }
+
+      if(pagination.length > 0) {
+        pagination[0].innerHTML = '';
+      }
+
+      if(_.debug === true) { console.groupEnd(); }
+    }
+
+
+    // CLEAR FEED (PRIVATE) -------------------------------------------------------------------
+    _.clearFeed = function () {
+
+      _.feed.innerHTML = ''; // clear ul list element
+      var obj_paging_active = _.paging.querySelectorAll('.active');  // get all active elements 
+
+      if(_.debug === true) { 
+        console.group('Runing _.clearFeed()');
+        console.group('Loop obj_paging_active');
+        console.log(obj_paging_active); 
+      }
+
+      for(var i=0, len=obj_paging_active.length; i < len; i++){
+        obj_paging_active[i].classList.remove('active');  // remove all active elements 
+        if(_.debug === true) { 
+          console.log('obj_paging_active['+i+']: ');
+          console.log(obj_paging_active[i]);
+        }
+      }
+      if(_.debug === true) { 
+        console.groupEnd(); 
+      }
+
+      _.clearPagination();
+
+      if(_.debug === true) { 
+        console.groupEnd(); 
+      }
+
+    }
+
+
     // GET DATA FROM THE OBJECT (PRIVATE) ------------------------------------------------------
     _.getDataSegment = function(int_begin, int_end ) {
 
-      if(_.debug === true) { console.group('Runing _.getDataSegment()'); }
+      if(_.debug === true) { 
+        console.group('Runing _.getDataSegment('+int_begin+','+int_end+')');
+        console.log('int_begin: '+ int_begin); 
+        console.log('int_end: '+ int_end); 
+        console.log('_.pages: '+ _.pages); 
+        console.groupEnd(); 
+      }
 
       //Type check for int_begin
       if(!(int_begin === parseInt(int_begin, 10))) {
@@ -167,76 +204,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
         return false;
       }
 
-      if(_.debug === true) { 
-        console.log('int_begin: '+ int_begin); 
-        console.log('int_end: '+ int_end); 
-      }
-
-      console.groupEnd(); 
       return _.data.current.slice( int_begin, int_end );
 
-    }
-
-
-    // RENDER FEED (PRIVATE) ------------------------------------------------------
-    _.renderFeed = function (pagedData) {
-
-      if(_.debug === true) { console.group('Runing _.renderFeed()'); }
-
-      if(_.debug === true) { 
-          console.group('Loop pagedData:'); 
-          console.log(pagedData);
-      }
-
-      // For loop the spliced "ary_Current_Page_Data" and add to the feed UL to render the new paged results
-      for(var i=0, len=pagedData.length; i < len; i++){
-        if(_.debug === true) { 
-          console.log('pagedData['+i+']:'); 
-          console.log(pagedData[i]); 
-        }
-        _.feed.appendChild( pagedData[i] ); // add DOM object into UL feed
-      }
-
-      if(_.debug === true) { console.groupEnd(); }
-      
-      // Reset pages
-      // Reset load pagination
-
-      if(_.debug === true) { 
-        console.groupEnd();
-      }
-
-    }
-
-
-
-    // NEW PAGE (PRIVATE) ------------------------------------------------------
-    _.newPage = function (event) {
-
-      if(_.debug === true) { 
-        console.group('Runing _.newPage('+this.innerHTML+')'); 
-        console.log('this.innerHTML:' + this.innerHTML); 
-        console.log('exports.displayed:' + exports.displayed);        
-      }
-
-      _.clearFeed(); // Add active to current clicked item
-      
-      this.classList.add('active'); // Add active to current clicked item
-      
-      _.renderFeed( _.getDataSegment( ((this.innerHTML - 1) * exports.displayed), ((this.innerHTML - 1) * exports.displayed) + exports.displayed ) ); // Render current data
-
-      if(_.debug === true) { console.groupEnd(); }
-
-    }
-
-
-    _.clearPagination = function () {
-       if(_.debug === true) { console.group('Runing _.clearPagination()'); }
-       
-      var pagination = document.getElementsByClassName(exports.pagination.substr(1));
-      if(pagination.length > 0) {
-        pagination[0].innerHTML = '';
-      }
     }
 
 
@@ -249,34 +218,57 @@ document.addEventListener("DOMContentLoaded", function(event) {
       var obj_ul = document.createElement('ul');                            // Define UL Element - More for Clarity
       var obj_li = document.createElement('li');                            // Define Li Element - More for Clarity
       var obj_a  = document.createElement('a');                             // Define A Element  - More for Clarity
-      
+
       if(_.debug === true) { 
         console.group('Local Variables'); 
         console.log('total: '+ total); 
         console.log('current: '+ current); 
+        console.log('_.pages: '+ _.pages); 
         console.log('exports.pagination.substr(1): '+ exports.pagination.substr(1)); 
         console.groupEnd();
       }
 
       // Add class to pagination wrapper DIV
       _.paging.classList.add( exports.pagination.substr(1) );     // Add Class
-      
+
       if(_.debug === true) { 
         console.group('Loop Page Buttons');
       }
       
-      for(var i=0, len=total; i < len; i++) {
+      for(var i=0, len=_.pages; i < len; i++) {
 
         obj_li = document.createElement('li');                   // Reset Li Element
         obj_a  = document.createElement('a');                    // Reset A Element
         obj_a.innerHTML = (i+1);                                 // Add innerHTML
         obj_a.setAttribute('href', '#'+(i+1));                   // Add HREF attribute
 
-        if(current == i) {
+        if(current === i) {
           obj_a.classList.add('active');                         // Add class active
         }
 
-        obj_a.addEventListener("click", _.newPage, false);
+        obj_a.addEventListener("click", function(){
+            
+            if(_.debug === true) { 
+              console.group('Runing Click New Page '+this.innerHTML+''); 
+            }
+            
+            _.page = this.innerHTML;
+            _.segment = (this.innerHTML - 1);
+
+            if(_.debug === true) { 
+              console.log('_.page: ' + _.page);
+              console.log('_.segment: ' + _.segment); 
+              console.log('(_.segment * exports.displayed) ' + (_.segment * exports.displayed));
+              console.log('(_.segment * exports.displayed) + exports.displayed ) ' + ((_.segment * exports.displayed) + exports.displayed) ); 
+            }
+            
+            _.clearFeed();
+            _.renderFeed(_.getDataSegment( (_.segment * exports.displayed), (_.segment * exports.displayed) + exports.displayed ), _.data.current.length, _.segment);
+
+            if(_.debug === true) { console.groupEnd(); }
+
+        }, false);
+
         obj_li.appendChild(obj_a);                               // Append A tag to UL
         obj_ul.appendChild(obj_li);                              // Append LI tag to UL
 
@@ -292,24 +284,62 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
 
       }
-      
-      if(_.debug === true) { console.groupEnd(); }
 
       _.paging.appendChild(obj_ul);                              // Add UL pagination list to the pagination div 
       _.feed.parentNode.appendChild( _.paging );                 // Add pagination widget to the DOM
 
       if(_.debug === true) { 
+        console.groupEnd();
         console.group('Rendered DOM Objects'); 
         console.log('_.paging:'); 
         console.log(_.paging); 
         console.log('_.feed.parentNode:'); 
         console.log(_.feed.parentNode);
         console.groupEnd(); 
+        console.groupEnd();
       }
 
-      if(_.debug === true) { console.groupEnd(); }
+    }
+
+
+    // RENDER FEED (PRIVATE) ------------------------------------------------------
+    _.renderFeed = function (pagedData, total, current) {
+
+      if(_.debug === true) { 
+        console.group('Runing _.renderFeed('+current+')');
+        console.group('Loop pagedData:'); 
+        console.log(pagedData);
+      }
+
+      // For loop the spliced "ary_Current_Page_Data" and add to the feed UL to render the new paged results
+      for(var i=0, len=pagedData.length; i < len; i++){
+
+        if(_.debug === true) { 
+          console.log('pagedData['+i+']:'); 
+          console.log(pagedData[i]); 
+        }
+
+        _.feed.appendChild( pagedData[i] ); // add DOM object into UL feed
+
+      }
+
+      if(_.debug === true) { 
+        console.groupEnd(); 
+        console.log('pagedData.length: '+pagedData.length);
+        console.log('current: '+current);
+      }
+      
+      // Reset pages
+      _.renderPagination(total, current);
+
+      if(_.debug === true) { 
+        console.groupEnd();
+      }
 
     }
+
+
+
 
 
 
@@ -389,14 +419,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
       if(_.debug === true) { 
         console.groupEnd(); 
       }
-      
+
       _.setCurrentData(ary_results);
-      _.renderFeed(_.getDataSegment(0, exports.displayed));
-      _.pages = Math.ceil( _.data.current.length / exports.displayed );
-      _.clearPagination();
-      _.renderPagination(_.pages, 0);
+      _.renderFeed(_.getDataSegment(0, exports.displayed), _.data.current.length, 0);
 
     }
+
 
 
     _.renderSearch = function () {
@@ -442,12 +470,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
     !(function() {
       if(_.debug === true) { console.group('Runing Init !(function())'); }
       
-      _.pages = Math.ceil( _.data.current.length / exports.displayed );
-
       _.clearFeed();
       _.renderSearch();
-      _.renderFeed(_.getDataSegment(0, exports.displayed));
-      _.renderPagination(_.pages, 0); // could move under render feed
+      _.setCurrentData(_.data.loaded);
+      _.renderFeed( _.getDataSegment(0, exports.displayed), _.data.current.length, 0);
 
       if(_.debug === true) { console.groupEnd(); }
     }());
