@@ -120,7 +120,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
     // SET CURRENT DATA ARRAY (PRIVATE) ---------------------------------------------------------------
-    _.setCurrentData = function (dataArray, page) {
+    _.setCurrentData = function (dataArray) {
 
       if(_.debug === true) { 
         console.group('Runing _.setCurrentData()');
@@ -130,8 +130,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
         console.groupEnd(); 
       }
 
-      _.data.current = dataArray;
       _.pages = Math.ceil( dataArray.length / exports.displayed );
+
+      if(_.segment.page > _.pages) {
+        _.setSegment(_.pages); 
+        window.location.hash = _.pages;
+      }
+
+      _.data.current = dataArray;
 
     }
 
