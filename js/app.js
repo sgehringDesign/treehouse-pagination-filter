@@ -52,8 +52,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
         searched: [],
       },
       pages: 0,
-      segment:  0,
-      page:  0,
+      segment: {
+        page:  1,
+        current : 0,
+        begin : 0,
+        end : exports.displayed
+      },
       search: {
         domElement: document.querySelector( exports.search_header ),
         isSearched: false,
@@ -64,10 +68,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
 
+
+
     // UTILITY METHODS =======================================================================================================
 
 
-    // GET PARAMETER BY NAME (PRIVATE) -------------------------------------------------------------------
+    // GET URL PARAMETER BY NAME (PRIVATE) -------------------------------------------------------------------
     _.getParameterByName = function(name) {
 
       var url = window.location.href;      
@@ -92,18 +98,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
     } 
 
 
-    // UPDATE PARAMETER NAME (PRIVATE) -------------------------------------------------------------------
+    // UPDATE URL PARAMETER NAME (PRIVATE) -------------------------------------------------------------------
     _.updateParameter = function(querystring) {
 
       if(_.debug === true) { console.group('Runing _.updateParameter()'); }
 
       if (history.pushState) {
         var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?'+ querystring;
-
-        if(_.debug === true) { 
-          console.log('newurl: '+ newurl); 
-        }
-
+        if(_.debug === true) { console.log('newurl: '+ newurl); }
         window.history.pushState({path:newurl},'',newurl);
       }
 
@@ -112,19 +114,65 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
 
+
+
+    // SET & GET METHODS =======================================================================================================
+
+
     // SET CURRENT DATA ARRAY (PRIVATE) ---------------------------------------------------------------
-    _.setCurrentData = function (dataArray) {
+    _.setCurrentData = function (dataArray, page) {
 
       if(_.debug === true) { 
         console.group('Runing _.setCurrentData()');
+        console.log('dataArray: ');
         console.log(dataArray); 
+        console.log('_.pages: '+Math.ceil( dataArray.length / exports.displayed ));
         console.groupEnd(); 
       }
 
       _.data.current = dataArray;
       _.pages = Math.ceil( dataArray.length / exports.displayed );
+
     }
 
+
+    // SET CURRENT SEGMENT (PRIVATE) ---------------------------------------------------------------
+    _.setSegment = function (page) {
+      
+      if(_.debug === true) { console.group('Runing _.setSegment()'); }
+
+      _.segment.page = page;
+      _.segment.current = (page - 1);
+      _.segment.begin = _.segment.current * exports.displayed;
+      _.segment.end = (_.segment.current * exports.displayed) + exports.displayed;
+
+      if(_.debug === true) { 
+        console.log(' _.segment: ');
+        console.log( _.segment );
+        console.groupEnd(); 
+      }
+
+    }
+
+
+    // GET DATA FROM THE OBJECT (PRIVATE) ------------------------------------------------------
+    _.getDataSegment = function() {
+
+      if(_.debug === true) { 
+        console.group('Runing _.getDataSegment('+_.segment.begin+','+_.segment.end+')');
+        console.log('_.segment: '); 
+        console.log(_.segment); 
+        console.groupEnd(); 
+      }
+
+      return _.data.current.slice( _.segment.begin, _.segment.end );
+
+    }
+
+
+
+
+    // CLEAR METHODS =======================================================================================================
 
     // CLEAR PAGINATION (PRIVATE) ---------------------------------------------------------------
     _.clearPagination = function () {
@@ -175,42 +223,12 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
 
-    // GET DATA FROM THE OBJECT (PRIVATE) ------------------------------------------------------
-    _.getDataSegment = function(int_begin, int_end ) {
 
-      if(_.debug === true) { 
-        console.group('Runing _.getDataSegment('+int_begin+','+int_end+')');
-        console.log('int_begin: '+ int_begin); 
-        console.log('int_end: '+ int_end); 
-        console.log('_.pages: '+ _.pages); 
-        console.groupEnd(); 
-      }
 
-      //Type check for int_begin
-      if(!(int_begin === parseInt(int_begin, 10))) {
-        console.error( 'obj_Feed.getDataSegment() : Bad type passed for "int_begin". This needs to be a int');
-        return false;
-      }
-
-       //Type check for int_end
-      if(!(int_end === parseInt(int_end, 10))) {
-        console.error( 'obj_Feed.getDataSegment() : Bad type passed for "int_end". This needs to be a int');
-        return false;
-      }
-
-      // Check for int_begin is less then zero or out of range
-      if(_.data.current.length < int_begin || 0 > int_begin) {
-        console.warn( 'obj_Feed.getDataItem() : Passed "int_begin" value is out of range of the loaded data array');
-        return false;
-      }
-
-      return _.data.current.slice( int_begin, int_end );
-
-    }
-
+    // RENDER METHODS =======================================================================================================
 
     // RENDER PAGINATION (PRIVATE) ------------------------------------------------------
-    _.renderPagination = function (total, current) {
+    _.renderPagination = function (total) {
       
       if(_.debug === true) { console.group('Runing _.renderPagination()'); }
 
@@ -221,9 +239,13 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       if(_.debug === true) { 
         console.group('Local Variables'); 
+
         console.log('total: '+ total); 
-        console.log('current: '+ current); 
         console.log('_.pages: '+ _.pages); 
+
+        console.log('_.segment'); 
+        console.log(_.segment);
+
         console.log('exports.pagination.substr(1): '+ exports.pagination.substr(1)); 
         console.groupEnd();
       }
@@ -242,28 +264,19 @@ document.addEventListener("DOMContentLoaded", function(event) {
         obj_a.innerHTML = (i+1);                                 // Add innerHTML
         obj_a.setAttribute('href', '#'+(i+1));                   // Add HREF attribute
 
-        if(current === i) {
+        if(_.segment.current === i) {
           obj_a.classList.add('active');                         // Add class active
         }
 
         obj_a.addEventListener("click", function(){
-            
+
             if(_.debug === true) { 
               console.group('Runing Click New Page '+this.innerHTML+''); 
             }
-            
-            _.page = this.innerHTML;
-            _.segment = (this.innerHTML - 1);
 
-            if(_.debug === true) { 
-              console.log('_.page: ' + _.page);
-              console.log('_.segment: ' + _.segment); 
-              console.log('(_.segment * exports.displayed) ' + (_.segment * exports.displayed));
-              console.log('(_.segment * exports.displayed) + exports.displayed ) ' + ((_.segment * exports.displayed) + exports.displayed) ); 
-            }
-            
+            _.setSegment(this.innerHTML);
             _.clearFeed();
-            _.renderFeed(_.getDataSegment( (_.segment * exports.displayed), (_.segment * exports.displayed) + exports.displayed ), _.data.current.length, _.segment);
+            _.renderFeed(_.getDataSegment());
 
             if(_.debug === true) { console.groupEnd(); }
 
@@ -303,10 +316,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 
     // RENDER FEED (PRIVATE) ------------------------------------------------------
-    _.renderFeed = function (pagedData, total, current) {
+    _.renderFeed = function (pagedData) {
 
       if(_.debug === true) { 
-        console.group('Runing _.renderFeed('+current+')');
+        console.group('Runing _.renderFeed('+_.segment.current+')');
         console.group('Loop pagedData:'); 
         console.log(pagedData);
       }
@@ -326,28 +339,17 @@ document.addEventListener("DOMContentLoaded", function(event) {
       if(_.debug === true) { 
         console.groupEnd(); 
         console.log('pagedData.length: '+pagedData.length);
-        console.log('current: '+current);
+        console.log('current: '+_.segment.current);
       }
       
       // Reset pages
-      _.renderPagination(total, current);
+      _.renderPagination(_.pages);
 
       if(_.debug === true) { 
         console.groupEnd();
       }
 
     }
-
-
-
-
-
-
-
-
-
-
-
 
 
     // SEARCH DATA FROM THE OBJECT (PUBLIC) ----------------------------------------------------------------------
@@ -357,7 +359,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       _.clearFeed();
 
-      var str_term = _.search.domElement.querySelector( 'input' ).value;
+      var str_term = _.search.domElement.querySelector('input').value;
       
       if(_.debug === true) { 
         console.log('str_term: ' + str_term); 
@@ -374,7 +376,9 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
         // Search term index of to check form match
         // value.slice(0, str_term.length) === str_term 
-        if(value.slice(0, str_term.length) === str_term) {
+        
+        /*
+          if(value.slice(0, str_term.length) === str_term) {
           if(_.debug === true) { 
             console.group('Filter Item _.data.loaded ' + index + ' + ');
             console.log('value: ' + value);
@@ -383,6 +387,23 @@ document.addEventListener("DOMContentLoaded", function(event) {
             console.log('str_term.length: ' + str_term.length);
             console.groupEnd(); 
           }
+          return domElement; // return element to array
+        }
+        */
+        
+        console.log('value.indexOf(str_term) ' + value.indexOf(str_term));
+        
+        if(value.indexOf(str_term) > -1) {
+
+          if(_.debug === true) { 
+            console.group('Filter Item _.data.loaded ' + index + ' + ');
+            console.log('value: ' + value);
+            console.log('value.slice(0, ' + str_term.length +'): ' + value.slice(0, str_term.length)); 
+            console.log('str_term: ' + str_term);
+            console.log('str_term.length: ' + str_term.length);
+            console.groupEnd(); 
+          }
+
           return domElement; // return element to array
         }
 
@@ -396,7 +417,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
 
       });
-      
+
+
+
+
       if(_.debug === true) { 
         console.groupEnd(); 
       }
@@ -420,8 +444,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
         console.groupEnd(); 
       }
 
-      _.setCurrentData(ary_results);
-      _.renderFeed(_.getDataSegment(0, exports.displayed), _.data.current.length, 0);
+      _.setCurrentData(ary_results); 
+      _.renderFeed(_.getDataSegment(0, exports.displayed));
 
     }
 
@@ -467,19 +491,32 @@ document.addEventListener("DOMContentLoaded", function(event) {
     }
 
 
+
     !(function() {
       if(_.debug === true) { console.group('Runing Init !(function())'); }
+
+      var hashPageNumber = Number(window.location.hash.substr(1, window.location.hash.length));
+      var search = ''
+      var loadedPageNumber = 1;
+
+      if(hashPageNumber) {
+        loadedPageNumber = Number(hashPageNumber);
+      }
       
+      _.setSegment(loadedPageNumber);
       _.clearFeed();
       _.renderSearch();
       _.setCurrentData(_.data.loaded);
-      _.renderFeed( _.getDataSegment(0, exports.displayed), _.data.current.length, 0);
+      _.renderFeed( _.getDataSegment() );
 
       if(_.debug === true) { console.groupEnd(); }
+
     }());
 
 
+
     return exports;
+
 
 
   }( obj_Feed || {} ));
@@ -489,129 +526,3 @@ document.addEventListener("DOMContentLoaded", function(event) {
 });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- /*
-  var obj_Feed = (function(exports) {
-    'use strict';
-
-
-  
-    // METHODS (PUBLIC) ________________________________________________________________________________________________________
-    !(function() {
-
-      _.clearFeed();
-      _.renderSearch();
-      _.renderFeed(_.data);
-
-      if( _.total > exports.displayed ) {
-        _.renderPagination( _.pages, _.current.value );
-      }
-
-    }());
-    
-
-    return exports;
-
-
-  }( obj_Feed || {} ));
-
-
-
-    //- newSearch() : (PRIVATE) -----------------------------------------------------------
-    //-- DESCRIPTION:    
-    //----- Function for changing data in the feed to match searched
-    var newSearch = function () {
-      
-      removeActivePage(); // Remove active page 
-      
-      // Filter search the array of DOM elements to find a match
-      ary_results = SearchFilter.feed.data.filter(function (domElement, index) {
-
-        var value = domElement.querySelector('h3').innerHTML;
-        var searchterm = SearchFilter.search.input.domElement.value;
-        
-        if(searchterm.length === 0) {
-          return false;
-        }
-
-        // if search is blank
-        if( value.indexOf(searchterm) == 0) {
-          return domElement;
-        } 
-
-      });
-
-      // clear the current feed
-      SearchFilter.feed.ul.domElement.innerHTML = '';
-            
-      if(ary_results.length === 0){
-        SearchFilter.feed.ul.domElement.innerHTML = '<li><div class="student-details"><h3>Sorry No Results Found</h3></div></li>'; // no results found 
-        return;
-      }
-
-      // For loop the ary_results and add to the feed UL to render the new search results
-      for(var i=0, len=ary_results.length; i < len; i++){
-        SearchFilter.feed.ul.domElement.appendChild( ary_results[i] ); // add dom element to UL tag
-      }
-
-    }
-
-  }
-*/
-
-
-
-/*
-    if(_.current.type === 'search' ) {
-      _.data = obj_DOMDataModule.searchData( _.current.value, 'h3');
-      _.total = _.data.length;
-      _.pages = Math.ceil( _.total / exports.displayed );
-    }
-    
-    if(_.current.type === 'page' ) {
-      _.total = obj_DOMDataModule.getLength();
-      _.pages = Math.ceil( _.total / exports.displayed );
-      _.data = obj_DOMDataModule.getDataSegment( ( _.current.value * exports.displayed ), ( ( _.current.value * exports.displayed ) + exports.displayed) );
-    }
-*/
