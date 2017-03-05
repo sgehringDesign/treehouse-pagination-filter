@@ -358,8 +358,10 @@ document.addEventListener("DOMContentLoaded", function(event) {
       if(_.debug === true) { console.group('Runing _.searchData()'); }
 
       window.location.hash = '';
-
+      
       _.clearFeed();
+
+      _.setSegment(1);
 
       var str_term = _.search.domElement.querySelector('input').value;
       
