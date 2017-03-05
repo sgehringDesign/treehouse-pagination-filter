@@ -357,6 +357,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
       if(_.debug === true) { console.group('Runing _.searchData()'); }
 
+      window.location.hash = '';
+
       _.clearFeed();
 
       var str_term = _.search.domElement.querySelector('input').value;
@@ -375,24 +377,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
         var value = domElement.querySelector('h3').innerHTML;  // get inner string to be searched in dom element
 
         // Search term index of to check form match
-        // value.slice(0, str_term.length) === str_term 
-        
-        /*
-          if(value.slice(0, str_term.length) === str_term) {
-          if(_.debug === true) { 
-            console.group('Filter Item _.data.loaded ' + index + ' + ');
-            console.log('value: ' + value);
-            console.log('value.slice(0, ' + str_term.length +'): ' + value.slice(0, str_term.length)); 
-            console.log('str_term: ' + str_term);
-            console.log('str_term.length: ' + str_term.length);
-            console.groupEnd(); 
-          }
-          return domElement; // return element to array
-        }
-        */
-        
-        console.log('value.indexOf(str_term) ' + value.indexOf(str_term));
-        
         if(value.indexOf(str_term) > -1) {
 
           if(_.debug === true) { 
@@ -417,9 +401,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
 
       });
-
-
-
 
       if(_.debug === true) { 
         console.groupEnd(); 
